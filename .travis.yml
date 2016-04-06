@@ -42,5 +42,5 @@ after_failure:
   - sudo cat /var/log/logstash/logstash.log
   - sudo cat /var/log/logstash/logstash.stdout
 
-notifications:
-  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+#notifications:
+#  webhooks: https://galaxy.ansible.com/api/v1/notifications/
