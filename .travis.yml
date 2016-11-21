@@ -1,46 +1,44 @@
 ---
-sudo: required
-language: python
-python: "2.7"
+
+dist: 'trusty'
 
 env:
-  - SITE=test.yml
+  global:
+    - ANSIBLE_FORCE_COLOR: True
+    - ANSIBLE_LOG_PATH: './ansible.log'
+    - ANSIBLE_ROLES_PATH: '../'
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install curl
+language: 'python'
+
+python:
+  - '2.7'
+
+sudo: 'required'
+
 
 install:
-  # Install Ansible.
-  - pip install ansible
-
-  # Add ansible.cfg to pick up roles path.
-  - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
-
-  # Install required dependencies.
-  - ansible-galaxy install geerlingguy.elasticsearch
+  # Install test requirements
+  - 'pip install -r requirements-devel.txt'
+  - |
+    if [ -f tests/requirements.yml ]; then
+      ansible-galaxy install -r tests/requirements.yml
+    fi
 
 script:
-  # Check the role/playbook's syntax.
-  - "ansible-playbook -i tests/inventory tests/$SITE --syntax-check"
+  # Check syntax of YAML files.
+  - 'yamllint -c .yamllint.conf .'
 
-  # Run the role/playbook with ansible-playbook.
-  - "ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo"
-  - "ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo"
+  # Check syntax of role.
+  - 'ansible-playbook -i localhost, -c local tests/test.yml --syntax-check'
 
-  # Run the role/playbook again, checking to make sure it's idempotent.
-  - >
-    ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
-    | grep -q 'changed=0.*failed=0'
-    && (echo 'Idempotence test: pass' && exit 0)
-    || (echo 'Idempotence test: fail' && exit 1)
+  # Run role.
+  - 'ansible-playbook -i localhost, -c local tests/test.yml --diff --verbose'
 
-  # TODO: Test if logstash is working correctly.
+  # Run role again to check idempotence failure.
+  - 'ansible-playbook -i localhost, -c local tests/test.yml --diff --verbose'
 
-after_failure:
-  - sudo cat /var/log/logstash/logstash.err
-  - sudo cat /var/log/logstash/logstash.log
-  - sudo cat /var/log/logstash/logstash.stdout
+  # Detect idempotence failure.
+  - 'tail -n 5 ansible.log | grep -Eq "changed=0 +unreachable=0 +failed=0"'
 
-#notifications:
-#  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+notifications:
+  webhooks: 'https://galaxy.ansible.com/api/v1/notifications/'

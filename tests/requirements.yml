@@ -1,0 +1,4 @@
+---
+
+- name: 'elasticsearch'
+  src: 'https://github.com/midonet/ansible-elasticsearch'
