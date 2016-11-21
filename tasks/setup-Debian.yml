@@ -18,7 +18,9 @@
   when: logstash_installed.stat.exists == false
 
 - name: Install Logstash.
-  apt: pkg=logstash state=present
+  apt:
+    pkg: logstash=1:1.5.4-1
+    state: present
 
 - name: Add Logstash user to adm group (Debian).
   user:
