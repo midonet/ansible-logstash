@@ -1,10 +1,8 @@
 ---
-- hosts: localhost
-  remote_user: root
 
-  vars:
-    logstash_enabled_on_boot: no
+- hosts: all
+  become: True
 
   roles:
-    - geerlingguy.elasticsearch
-    - ansible-role-logstash
+    - elasticsearch
+    - ansible-logstash

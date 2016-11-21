@@ -1,1 +1,4 @@
-files/logstash-forwarder*
+*.log
+*.retry
+tests/.vagrant/
+tests/inventory
